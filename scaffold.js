@@ -1,4 +1,4 @@
-// scaffold.js, by Shawn
+// scaffold.js, by Shawn Fraistat
 
 ///////////////////
 //               //
