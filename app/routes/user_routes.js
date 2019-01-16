@@ -22,6 +22,10 @@ const requireToken = passport.authenticate('bearer', { session: false })
 // instantiate a router (mini app that only handles routes)
 const router = express.Router()
 
+// checks to see if the requesting user's id matches the id of the user they are trying to update
+const validateUser = customErrors.validateUser
+
+
 // get leaderboard of users
 router.get('/leaderboard', requireToken, (req, res) => {
   User.find().populate('totalScore').sort({totalScore: -1})
@@ -144,6 +148,40 @@ router.delete('/sign-out', requireToken, (req, res) => {
   // save the token and respond with 204
   req.user.save()
     .then(() => res.sendStatus(204))
+    .catch(err => handle(err, res))
+})
+
+// UPDATE
+// PATCH -> nickname and total Score
+// NEED TO CHECK: params validation
+router.patch('/users/:id', requireToken, (req, res) => {
+  // if the client attempts to change the `owner` property by including a new
+  // owner, prevent that by deleting that key/value pair
+  delete req.body.user.owner
+
+  User.findById(req.params.id)
+    .then(handle404)
+    .then(user => {
+      // console.log(`user is`, user)
+      // pass the `req` object and the Mongoose record to `validateUser`
+      // it will throw an error if the current user isn't the owner
+      validateUser(req, user)
+
+      // the client will often send empty strings for parameters that it does
+      // not want to update. We delete any key/value pair where the value is
+      // an empty string before updating
+      Object.keys(req.body.user).forEach(key => {
+        if (req.body.user[key] === '') {
+          delete req.body.user[key]
+        }
+      })
+
+      // pass the result of Mongoose's `.update` to the next `.then`
+      return user.update(req.body.user)
+    })
+    // if that succeeded, return 204 and no JSON
+    .then(() => res.sendStatus(204))
+    // if an error occurs, pass it to the handler
     .catch(err => handle(err, res))
 })
 
