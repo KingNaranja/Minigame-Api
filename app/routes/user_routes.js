@@ -22,6 +22,17 @@ const requireToken = passport.authenticate('bearer', { session: false })
 // instantiate a router (mini app that only handles routes)
 const router = express.Router()
 
+// get leaderboard of users
+router.get('/leaderboard', requireToken, (req, res) => {
+  User.find().populate('totalScore').sort({totalScore: -1})
+    .then(players => {
+      return players.map(player => player.toObject())
+    })
+    .then(players => res.status(200).json({ players: players }))
+    .catch(err => handle(err, res))
+})
+
+
 // SIGN UP
 // POST /sign-up
 router.post('/sign-up', (req, res) => {
