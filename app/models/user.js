@@ -17,6 +17,11 @@ const userSchema = new mongoose.Schema({
     minlength: 3,
     maxlength: 10
   },
+  totalScore: {
+    type: Number,
+    required: false,
+    default: 0
+  },
   token: String
 }, {
   timestamps: true,
