@@ -13,6 +13,7 @@ const requireToken = passport.authenticate('bearer', { session: false })
 
 const router = express.Router()
 
+// Index 
 router.get('/games', requireToken, (req, res) => {
   Game.find()
     .then(games => {
@@ -22,6 +23,7 @@ router.get('/games', requireToken, (req, res) => {
     .catch(err => handle(err, res))
 })
 
+// Get one Game 
 router.get('/games/:id', requireToken, (req, res) => {
   Game.findById(req.params.id)
     .then(handle404)
@@ -29,6 +31,7 @@ router.get('/games/:id', requireToken, (req, res) => {
     .catch(err => handle(err, res))
 })
 
+// Create one Game 
 router.post('/games', requireToken, (req, res) => {
   req.body.game.owner = req.user.id
 
@@ -39,6 +42,7 @@ router.post('/games', requireToken, (req, res) => {
     .catch(err => handle(err, res))
 })
 
+// Update one Game 
 router.patch('/games/:id', requireToken, (req, res) => {
   delete req.body.game.owner
 
@@ -59,6 +63,7 @@ router.patch('/games/:id', requireToken, (req, res) => {
     .catch(err => handle(err, res))
 })
 
+// Delete one Game 
 router.delete('/games/:id', requireToken, (req, res) => {
   Game.findById(req.params.id)
     .then(handle404)
