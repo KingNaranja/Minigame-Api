@@ -10,7 +10,15 @@ const bcrypt = require('bcrypt')
 const bcryptSaltRounds = 10
 
 const handle = require('../../lib/error_handler')
-const BadParamsError = require('../../lib/custom_errors').BadParamsError
+
+// this is a collection of methods that help us detect situations when we need
+// to throw a custom error
+const customErrors = require('../../lib/custom_errors')
+
+const BadParamsError = customErrors.BadParamsError
+
+// handle the request of non existent docuements 
+const handle404 = customErrors.handle404
 
 const User = require('../models/user')
 
@@ -28,7 +36,8 @@ const validateUser = customErrors.validateUser
 
 // get leaderboard of users
 router.get('/leaderboard', requireToken, (req, res) => {
-  User.find().populate('totalScore').sort({totalScore: -1})
+  // sort users by total Score, descending 
+  User.find().sort({totalScore: -1})
     .then(players => {
       return players.map(player => player.toObject())
     })
