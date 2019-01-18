@@ -10,7 +10,15 @@ const bcrypt = require('bcrypt')
 const bcryptSaltRounds = 10
 
 const handle = require('../../lib/error_handler')
-const BadParamsError = require('../../lib/custom_errors').BadParamsError
+
+// this is a collection of methods that help us detect situations when we need
+// to throw a custom error
+const customErrors = require('../../lib/custom_errors')
+
+const BadParamsError = customErrors.BadParamsError
+
+// handle the request of non existent docuements 
+const handle404 = customErrors.handle404
 
 const User = require('../models/user')
 
@@ -21,6 +29,22 @@ const requireToken = passport.authenticate('bearer', { session: false })
 
 // instantiate a router (mini app that only handles routes)
 const router = express.Router()
+
+// checks to see if the requesting user's id matches the id of the user they are trying to update
+const validateUser = customErrors.validateUser
+
+
+// get leaderboard of users
+router.get('/leaderboard', requireToken, (req, res) => {
+  // sort users by total Score, descending 
+  User.find().sort({totalScore: -1})
+    .then(players => {
+      return players.map(player => player.toObject())
+    })
+    .then(players => res.status(200).json({ players: players }))
+    .catch(err => handle(err, res))
+})
+
 
 // SIGN UP
 // POST /sign-up
@@ -42,7 +66,8 @@ router.post('/sign-up', (req, res) => {
       // return necessary params to create a user
       return {
         email: req.body.credentials.email,
-        hashedPassword: hash
+        hashedPassword: hash,
+        nickname: req.body.nickname
       }
     })
     // create user with provided email and hashed password
@@ -132,6 +157,40 @@ router.delete('/sign-out', requireToken, (req, res) => {
   // save the token and respond with 204
   req.user.save()
     .then(() => res.sendStatus(204))
+    .catch(err => handle(err, res))
+})
+
+// UPDATE
+// PATCH -> nickname and total Score
+// NEED TO CHECK: params validation
+router.patch('/users/:id', requireToken, (req, res) => {
+  // if the client attempts to change the `owner` property by including a new
+  // owner, prevent that by deleting that key/value pair
+  delete req.body.user.owner
+
+  User.findById(req.params.id)
+    .then(handle404)
+    .then(user => {
+      // console.log(`user is`, user)
+      // pass the `req` object and the Mongoose record to `validateUser`
+      // it will throw an error if the current user isn't the owner
+      validateUser(req, user)
+
+      // the client will often send empty strings for parameters that it does
+      // not want to update. We delete any key/value pair where the value is
+      // an empty string before updating
+      Object.keys(req.body.user).forEach(key => {
+        if (req.body.user[key] === '') {
+          delete req.body.user[key]
+        }
+      })
+
+      // pass the result of Mongoose's `.update` to the next `.then`
+      return user.update(req.body.user)
+    })
+    // if that succeeded, return 204 and no JSON
+    .then(() => res.sendStatus(204))
+    // if an error occurs, pass it to the handler
     .catch(err => handle(err, res))
 })
 
