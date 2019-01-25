@@ -37,7 +37,7 @@ const validateUser = customErrors.validateUser
 // get leaderboard of users
 router.get('/leaderboard',  (req, res) => {
   // sort users by total Score, descending 
-  User.find().sort({totalScore: -1})
+  User.find().sort({totalScore: -1}).limit(10)
     .then(players => {
       return players.map(player => player.toObject())
     })
