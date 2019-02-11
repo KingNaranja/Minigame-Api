@@ -1,6 +1,6 @@
-# [Coin Minigame](https://github.com/KingNaranja/Coin-Minigame/)
+# [Coin.io](https://github.com/KingNaranja/Coin-Minigame/)
 
-# [Minigame-Api](https://github.com/KingNaranja/Minigame-Api)
+# [Coin.io Api Server](https://github.com/KingNaranja/Minigame-Api)
 
 ### Minigame repositories:
 https://github.com/KingNaranja/Coin-Minigame 
@@ -42,14 +42,40 @@ The `/leaderboard` route sends a GET request for every user and sorts the respon
 * Mongoose
 * Node.js
 
-# WireFrames and Documentation
+# Documentation
 
-* [ERD](https://imgur.com/g3RlOSk) 
-* [User Stories](https://imgur.com/dAujhg4)
+![Coin.io Api ERD image](./img/coin_io_erd.png)
+
+
+
+### Authentication
+
+| Request type | Route              | Action                  | Return if Successful         |
+| ------------ | ------------------ | ----------------------- | ---------------------------- |
+| POST         | `/sign-up`         | Creates a new user      | 201 / user object            |
+| POST         | `/sign-in`         | Checks credentials      | 201 / user object with token |
+| PATCH        | `/change-password` | Hashes new password     | 204                          |
+| DELETE       | `/sign-out`        | Hashes stored Api Token | 204                          |
+
+### User Actions
+
+| Request type | Route            | Action                                                       | Return if Successful |
+| ------------ | ---------------- | ------------------------------------------------------------ | -------------------- |
+| INDEX        | `/games`         | Fetches all games, sorts by date created (newest first)      | 200 / all games      |
+| SHOW         | `/games/:id`     | Fetches single game                                          | 200 / one game       |
+| CREATE       | `/games`         | Creates a new game                                           | 201 / created game   |
+| PATCH        | `/games/:id`     | Updates contents of a game (if owned by requesting user)     | 204                  |
+| DELETE       | `/games/:id`     | Deletes a game (if owned by requesting user)                 | 204                  |
+| INDEX        | `/games/myGames` | Fetches / sorts all games, then filters for those owned by the requester | 200 / all my games   |
+| PATCH        | `/users/:id`     | Updates User nickname and high score                         | 200                  |
+| PATCH        | `/leaderboard`   | Fetches 5 users; sorted by their high score (highest first)  | 200                  |
 
 # Planning
+
 I planned early on to use Express and Mongoose to serve my backend because I understood that it would be easier to create an unrelationable database. The game scene was scoped to be as simple as possible in order for me to easily make requests to this API from inside the game scene.
+
+[User Stories](https://imgur.com/dAujhg4)
 
 # Future
 While the client side has the scalability to add more game scenes, the `games` model will have to be refactored to work better with while the number of users in the database grow.
-- Logic needs to be implemented to calculate the total Score / high score so the client    does not make to many request during an instance. 
+- Logic needs to be implemented to calculate the total Score / high score so the client   does not make to many request during an instance. 
