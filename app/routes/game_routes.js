@@ -27,7 +27,7 @@ router.get('/games', requireToken, (req, res) => {
 // Get all of my games 
 // GET /games/user
 router.get('/games/myGames', requireToken, (req, res) => {
-  Game.find().populate('owner', 'nickname').sort('-createdAt').limit(5)
+  Game.find().populate('owner', 'nickname').sort('createdAt').limit(5)
     .then(games => {
       // console.log(games)
       const myGames = []
